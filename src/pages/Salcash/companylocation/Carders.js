@@ -49,7 +49,10 @@ const CompanyLocation = (props) => {
       const response = await RestAPI.PUTCarderById(values, carderId)
       if(response.status === 200){
         notification.success({ message: 'Company Carder updated successfully!' });
-        getCompanyCarderData(companyId)
+        getCompanyCarderData(companyId);
+        form.resetFields();
+        form.setFieldsValue({company_id : companyId});
+        setEditStatus2(false);
       }else{
         notification.error({ message: 'Company Carder update Failed' });
       }
@@ -57,7 +60,10 @@ const CompanyLocation = (props) => {
       const response = await RestAPI.POSTCarder(values)
       if(response.status === 200){
         notification.success({ message: 'Company Carder saved successfully!' });
-        getCompanyCarderData(companyId)
+        getCompanyCarderData(companyId);
+        form.resetFields();
+        form.setFieldsValue({company_id : companyId});
+        setEditStatus2(false);
       }else{
         notification.error({ message: 'Company Carder creation Failed' });
       }

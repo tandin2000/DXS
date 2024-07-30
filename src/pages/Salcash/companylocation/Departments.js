@@ -45,7 +45,10 @@ const CompanyLocation = (props) => {
       const response = await RestAPI.PUTDepartmentById(values, departmentId)
       if(response.status === 200){
         notification.success({ message: 'Company Department updated successfully!' });
-        getCompanyDepartmentData(companyId)
+        getCompanyDepartmentData(companyId);
+        form.resetFields();
+        form.setFieldsValue({company_id : companyId});
+        setEditStatus2(false);
       }else{
         notification.error({ message: 'Company Department update Failed' });
       }
@@ -53,7 +56,10 @@ const CompanyLocation = (props) => {
       const response = await RestAPI.POSTDepartment(values)
       if(response.status === 200){
         notification.success({ message: 'Company Department saved successfully!' });
-        getCompanyDepartmentData(companyId)
+        getCompanyDepartmentData(companyId);
+        form.resetFields();
+        form.setFieldsValue({company_id : companyId});
+        setEditStatus2(false);
       }else{
         notification.error({ message: 'Company Department creation Failed' });
       }
@@ -337,7 +343,13 @@ const CompanyLocation = (props) => {
               </Form.Item>
               <Form.Item label="Head of the Department Contact No"
               name="contact_number"
-              rules={[{ required: true, message: 'Please enter the contact person name!' }]}>
+              rules={[
+              { required: true, message: 'Please enter the contact number!' },
+              {
+                pattern: /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,}$/,
+                message: 'Please enter a valid phone number',
+              },
+            ]}>
                 <Input placeholder="Phone No of Head of department" />
               </Form.Item>
 

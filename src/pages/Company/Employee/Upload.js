@@ -47,10 +47,10 @@ const items = [
     key: '3',
     label: 'Employees',
   },
-  {
-    key: '4',
-    label: 'Data Mapping',
-  },
+  // {
+  //   key: '4',
+  //   label: 'Data Mapping',
+  // },
 ];
 const confirm = (e) => {
   console.log(e);

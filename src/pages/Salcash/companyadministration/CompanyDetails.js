@@ -174,8 +174,14 @@ const CompanyDetails = (props) => {
             <Form.Item
               label="General Telephone No"
               name="company_contact_number"
-              rules={[{ required: true, message: 'Please enter the company_contact_number number' }]}
-            >
+              rules={[
+                      { required: true, message: 'Please enter the company contact number' },
+                      {
+                        pattern: /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,}$/,
+                        message: 'Please enter a valid phone number',
+                      },
+                    ]}            
+              >
               <Input placeholder="" />
             </Form.Item>
           </Col>
@@ -183,8 +189,14 @@ const CompanyDetails = (props) => {
             <Form.Item
               label="General Email Adress"
               name="company_email"
-              rules={[{ required: true, message: 'Please enter the company_email address' }]}
-            >
+              rules={[
+                      { required: true, message: 'Please enter the company email address' },
+                      {
+                        type: 'email',
+                        message: 'Please enter a valid email address',
+                      },
+                    ]}            
+              >
               <Input placeholder="" />
             </Form.Item>
           </Col>

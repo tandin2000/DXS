@@ -32,9 +32,13 @@ const items = [
     key: '3',
     label: 'Employees',
   },
+  // {
+  //   key: '4',
+  //   label: 'Data Mapping',
+  // },
   {
-    key: '4',
-    label: 'Data Mapping',
+    key: '5',
+    label: 'Activate',
   },
 ];
 
@@ -64,7 +68,9 @@ const CompanyLocation = () => {
   const getCompanySearch = async(values) =>{
     const response = await RestAPI.GETCompanySearch(values)
     if(response.status === 200){
-      setCompanyList(response?.data)
+      const filteredData = response?.data.filter(company => company.name.toLowerCase() !== 'salcash');
+
+      setCompanyList(filteredData)
       notification.success({ message: 'Company Found' });
     }else{
       notification.error({ message: 'Company Searching Failed' });
@@ -172,6 +178,20 @@ const CompanyLocation = () => {
       ),
   });
 
+  const activateCompany = async(id)=> {
+    const values = {
+      status: 1
+    }
+    const response = await RestAPI.PUTCompanies(values, id);
+    if(response.status === 200){
+      notification.success({ message: 'Company set active' });
+      getCompanySearch();
+    }else{
+      notification.success({ message: 'Company activation failed' });
+    }
+
+  }
+
   const handleMenuClick = (e, record) => {
     switch(e.key){
       case "1" :
@@ -187,6 +207,9 @@ const CompanyLocation = () => {
       case "4" :
         localStorage.setItem('CompanyId', JSON.stringify(record._id));
         navigate('/DataMapping');
+        break;
+      case "5" :
+        activateCompany(record._id)
         break;
       default :
         break;
@@ -217,8 +240,14 @@ const CompanyLocation = () => {
       ...getColumnSearchProps('industry'),
       sorter: (a, b) => a.location - b.location,
     },
-
-
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      ...getColumnSearchProps('status'),
+      sorter: (a, b) => a.status - b.status,
+      render: (status) => (status === 1 ? 'Active' : 'Draft')
+    },
     {
       title: 'Action',
       key: 'action',

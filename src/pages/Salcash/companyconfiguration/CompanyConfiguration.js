@@ -9,6 +9,7 @@ import { EyeOutlined } from '@ant-design/icons';
 import { SearchOutlined } from '@ant-design/icons';
 import { DeleteOutlined } from '@ant-design/icons';
 import RestAPI from '../../../common/RestServices/RestAPI';
+import moment from 'moment';
  
 const cancel = (e) => {
   message.error('Aborted');
@@ -28,6 +29,8 @@ const CompanyLocation = (props) => {
   const [locationConfigurationData, setLocationConfigurationData] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
+  const [startDate, setStartDate] = useState(null);
+
   const searchInput = useRef(null);
 
 
@@ -54,6 +57,7 @@ const CompanyLocation = (props) => {
     form.resetFields();
     form.setFieldsValue({company_id : companyId});
     setEditStatus2(false);
+    setStartDate(null);
   };
 
   const convertToDate = (isoString) => {
@@ -61,7 +65,25 @@ const CompanyLocation = (props) => {
     return date.toISOString().split('T')[0];
   };
 
+  const convertToIsoString = (dateString) => {
+    const date = new Date(dateString);
+    return moment(date.toISOString());
+};
+
+function checkIfObjInArray(obj) {
+  for (const item of locationConfigurationData) {
+      if (item.location_id === obj.location_id && item.carder_id === obj.carder_id) {
+          return false;
+      }
+  }
+  return true;
+}
+
   const handleSubmit = async(values) => {
+
+    const checkNew = checkIfObjInArray(values)
+    
+    if(checkNew){
     values.salary_date = convertToDate( values.salary_date)
     values.month_start = convertToDate( values.month_start)
     values.month_end = convertToDate( values.month_end)
@@ -69,20 +91,129 @@ const CompanyLocation = (props) => {
       const response = await RestAPI.PUTLocationConfigurationById(values, companyConfigurationId)
       if(response.status === 200){
         notification.success({ message: 'Company Location Configuration updated successfully!' });
-        getCompanyLocationConfigurationData(companyId)
+        getCompanyLocationConfigurationData(companyId);
+        form.resetFields();
+        form.setFieldsValue({company_id : companyId});
+        setEditStatus2(false);
+        setStartDate(null);
+
       }else{
         notification.error({ message: 'Company Location Configuration update Failed' });
       }
     }else{
-      console.log(values)
-      const response = await RestAPI.POSTLocationConfiguration(values)
-      if(response.status === 200){
-        notification.success({ message: 'Company Location Configuration saved successfully!' });
-        getCompanyLocationConfigurationData(companyId)
+      if(values.location_id === "all" && values.carder_id !== "all"){        
+        const locationValueData = locationData
+                .filter(option => option.value !== "all")
+                .map(option => option.value);
+        locationValueData.map(async(x, index)=>{
+          const isExistingCombination = locationConfigurationData.some(item => item.location_id === x && item.carder_id === values.carder_id);
+
+        if (isExistingCombination) {
+                notification.error({ message: 'Company Location Configuration already exists' });
+        } else{
+          values.location_id = x;
+          const response = await RestAPI.POSTLocationConfiguration(values);
+          if(index === locationValueData.length - 1 ){
+            if(response.status === 200){
+              notification.success({ message: 'Company Location Configuration saved successfully!' });
+              getCompanyLocationConfigurationData(companyId);
+              form.resetFields();
+              form.setFieldsValue({company_id : companyId});
+              setEditStatus2(false);
+              setStartDate(null);
+      
+            }else{
+              notification.error({ message: 'Company Location Configuration creation Failed' });
+            }
+          }
+        }
+      })
+      }else if(values.location_id !== "all" && values.carder_id === "all"){
+        const carderValueData = carderData
+                .filter(option => option.value !== "all")
+                .map(option => option.value);
+        carderValueData.map(async(x, index)=>{
+          const isExistingCombination = locationConfigurationData.some(item => item.location_id === values.location_id && item.carder_id === x);
+
+        if (isExistingCombination) {
+
+                notification.error({ message: 'Company Location Configuration already exists' });
+        } else{
+          values.carder_id = x;
+          const response = await RestAPI.POSTLocationConfiguration(values);
+          if(index === carderValueData.length  -1){
+            if(response.status === 200){
+              notification.success({ message: 'Company Location Configuration saved successfully!' });
+              getCompanyLocationConfigurationData(companyId);
+              form.resetFields();
+              form.setFieldsValue({company_id : companyId});
+              setEditStatus2(false);
+              setStartDate(null);
+      
+            }else{
+              notification.error({ message: 'Company Location Configuration creation Failed' });
+            }
+          }
+        }
+        })
+
+      }else if(values.location_id === "all" && values.carder_id === "all"){
+        const locationValueData = locationData
+        .filter(option => option.value !== "all")
+        .map(option => option.value);
+
+        const carderValueData = carderData
+            .filter(option => option.value !== "all")
+            .map(option => option.value);
+
+        locationValueData.forEach(locationId => {
+            carderValueData.map(async (carderId, index) => {
+                const isExistingCombination = locationConfigurationData.some(item => item.location_id === locationId && item.carder_id === carderId);
+
+                if (isExistingCombination) {
+                    if (index === carderValueData.length - 1) {
+                        notification.error({ message: 'Company Location Configuration already exists for one or more combinations.' });
+                    }
+                } else {
+                    values.location_id = locationId;
+                    values.carder_id = carderId;
+                    const response = await RestAPI.POSTLocationConfiguration(values);
+
+                    if (index === carderValueData.length - 1) {
+                        if (response.status === 200) {
+                            notification.success({ message: 'Company Location Configuration saved successfully!' });
+                            getCompanyLocationConfigurationData(companyId);
+                            form.resetFields();
+                            form.setFieldsValue({ company_id: companyId });
+                            setEditStatus2(false);
+                            setStartDate(null);
+                        } else {
+                            notification.error({ message: 'Company Location Configuration creation failed.' });
+                        }
+                    }
+                }
+            });
+        });
+
       }else{
-        notification.error({ message: 'Company Location Configuration creation Failed' });
+        const response = await RestAPI.POSTLocationConfiguration(values)
+        if(response.status === 200){
+          notification.success({ message: 'Company Location Configuration saved successfully!' });
+          getCompanyLocationConfigurationData(companyId);
+          form.resetFields();
+          form.setFieldsValue({company_id : companyId});
+          setEditStatus2(false);
+          setStartDate(null);
+  
+        }else{
+          notification.error({ message: 'Company Location Configuration creation Failed' });
+        }
       }
     }
+    }else{
+      notification.error({ message: 'Company Location Configuration already created Try to edit or delete it' });
+    }
+
     
   };
   const confirm = async(id) => {
@@ -197,11 +328,11 @@ const CompanyLocation = (props) => {
   const columns = [
     {
       title: 'ID',
-      dataIndex: '_id',
-      key: '_id',
+      dataIndex: 'company_location_configuration_id',
+      key: 'company_location_configuration_id',
       
-      ...getColumnSearchProps('_id'),
-      sorter: (a, b) => a.id - b.id,
+      ...getColumnSearchProps('company_location_configuration_id'),
+      sorter: (a, b) => a.company_location_configuration_id - b.company_location_configuration_id,
 
     },
     {
@@ -222,11 +353,28 @@ const CompanyLocation = (props) => {
     },
     {
       title: 'Withdrawal Window',
-      dataIndex: 'window',
       key: 'window',
-      ...getColumnSearchProps('window'),
-      sorter: (a, b) => a.location - b.location,
+      children: [
+        {
+          title: 'Start Date',
+          dataIndex: 'month_start',
+          key: 'month_start',
+          ...getColumnSearchProps('month_start'),
+          sorter: (a, b) => new Date(a.month_start) - new Date(b.month_start),
+      render: (text) => moment(text).format('DD MMMM YYYY'),
+        },
+        {
+          title: 'End Date',
+          dataIndex: 'month_end',
+          key: 'month_end',
+          ...getColumnSearchProps('month_end'),
+          sorter: (a, b) => new Date(a.month_end) - new Date(b.month_end),
+      render: (text) => moment(text).format('DD MMMM YYYY'),
+
+        },
+      ],
     },
+    
     {
       title: 'Action',
       key: 'action',
@@ -236,14 +384,14 @@ const CompanyLocation = (props) => {
               <Button 
                 type="primary" 
                 shape="circle"
-                onClick={(e) => getData(record._id)}  
+                onClick={(e) => getData(record.company_location_configuration_id)}  
                 icon={<EditOutlined />} 
               />
             )}
           <Popconfirm
     title="Delete the task"
     description="Are you sure to delete this task?"
-    onConfirm={(e)=>confirm(record._id)}
+    onConfirm={(e)=>confirm(record.company_location_configuration_id)}
     onCancel={cancel}
     okText="Yes"
     cancelText="No"
@@ -278,12 +426,24 @@ const CompanyLocation = (props) => {
 
   const getData = async(id) => {
     const response = await RestAPI.GETLocationConfigurationById(id);
+
     if(response.status === 200){
       setCompanyConfigurationId(id);
+      
+
+      const salary_date = convertToIsoString(response.data.salary_date);
+      const month_start = convertToIsoString(response.data.month_start);
+      const month_end = convertToIsoString(response.data.month_end);
+      handleStartDateChange(month_start)
+
       form.setFieldsValue({
           company_id: response.data.company_id,
           location_id: response.data.location_id,
-          carder_id: response.data.carder_id
+          carder_id: response.data.carder_id,
+          salary_date: salary_date,
+          month_start: month_start,
+          month_end: month_end,
+          max_percentage_override: response.data.max_percentage_override,
       });
       setEditStatus2(true);
     }else{
@@ -297,14 +457,18 @@ const CompanyLocation = (props) => {
     const response = await RestAPI.GETLocationsByCompany(id);
     const response3 = await RestAPI.GETCardersByCompany(id);
     if(response.status === 200){
+      const allOptions = { value: 'all', label: 'All' };
       const companyOptions = response.data.map(company => ({ value: company._id, label: company.name }));
+      companyOptions.unshift(allOptions);
       setLocationData(companyOptions);
     }else{
       setLocationData([]);
 
     }
     if(response3.status === 200){
+      const allOptions = { value: 'all', label: 'All' };
       const companyOptions = response3.data.map(company => ({ value: company._id, label: company.name }));
+      companyOptions.unshift(allOptions);
       setCarderData(companyOptions)
     }else{
       setCarderData([])
@@ -343,6 +507,20 @@ const CompanyLocation = (props) => {
     }
 
   }
+
+  const handleStartDateChange = (date) => {
+    setStartDate(date);
+    form.setFieldsValue({ month_end: null });
+  };
+
+  const disabledEndDate = (current) => {
+    if (!startDate) {
+      return true; 
+    }
+    return current && current < startDate.startOf('day'); 
+  };
+
+
 
   return (
     <>
@@ -415,13 +593,13 @@ const CompanyLocation = (props) => {
             </Col>
             <Col lg={6} xs={24}>
             <Form.Item label="From" name="month_start"  rules={[{ required: true, message: 'Please select a Starting Month!' }]}>
-          <DatePicker className='full-width'/>
+          <DatePicker onChange={handleStartDateChange} className='full-width'/>
 
       </Form.Item>
 </Col>
 <Col lg={6} xs={24}>
 <Form.Item label="To" name="month_end"  rules={[{ required: true, message: 'Please select a Ending Month!' }]}>
-          <DatePicker className='full-width'/>
+          <DatePicker disabled={startDate === null} className='full-width' disabledDate={disabledEndDate}/>
 
       </Form.Item>
 </Col>

@@ -14,7 +14,7 @@ const cancel = (e) => {
   message.error('Aborted');
 };
 
-const CompanyLocation = () => {
+const CompanyLocation = (props) => {
   const [form] = Form.useForm();
   
   const [editStatus, setEditStatus] = useState(false);
@@ -27,6 +27,7 @@ const CompanyLocation = () => {
   const [csvColumns, setCsvColumns] = useState([]);
   const [selectedFileFields, setSelectedFileFields] = useState([]);
   const [preDefinedFileFields, setPreDefinedFileFields] = useState([]);
+  const [csvUploaded, setCsvUploaded] = useState(false); // Track CSV upload status
   const searchInput = useRef(null);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
@@ -46,35 +47,33 @@ const CompanyLocation = () => {
     setEditStatus(false);
     setCsvColumns([]);
     setSelectedFileFields([]);
+    setCsvUploaded(false); // Reset CSV upload status
   };
 
   const handleSubmit = async (values) => {
-
-
     if (editStatus) {
       const response = await RestAPI.PUTDataMappingById(values, dataMappingId);
       if (response.status === 200) {
-        notification.success({ message: 'Company Location update successfully!' });
+        notification.success({ message: 'Company Location updated successfully!' });
         getDataMappingData(companyId);
       } else {
-        notification.error({ message: 'Company Location update Failed' });
+        notification.error({ message: 'Company Location update failed' });
       }
     } else {
-
-      selectedFileFields.map(async(x, index)=>{
+      selectedFileFields.map(async (x, index) => {
         const payload = {
           company_id: values.company_id,
           salcash_column_name: preDefinedFileFields[index].value,
           company_column_name: x.value,
-        }
+        };
         const response = await RestAPI.POSTDataMapping(payload);
         if (response.status === 200) {
           notification.success({ message: 'Company Location saved successfully!' });
           getDataMappingData(companyId);
         } else {
-          notification.error({ message: 'Company Location creation Failed' });
+          notification.error({ message: 'Company Location creation failed' });
         }
-      })
+      });
       handleCancel();
     }
   };
@@ -82,10 +81,10 @@ const CompanyLocation = () => {
   const confirm = async (id) => {
     const response = await RestAPI.DELDataMappingById(id);
     if (response.status === 200) {
-      notification.success({ message: 'Company Location Deleted!' });
+      notification.success({ message: 'Company Location deleted!' });
       getDataMappingData(companyId);
     } else {
-      notification.error({ message: 'Company Location delete Failed' });
+      notification.error({ message: 'Company Location delete failed' });
     }
   };
 
@@ -174,7 +173,7 @@ const CompanyLocation = () => {
               close();
             }}
           >
-            close
+            Close
           </Button>
         </Space>
       </div>
@@ -238,7 +237,6 @@ const CompanyLocation = () => {
       key: 'created_at',
       sorter: (a, b) => a.date - b.date,
       render: (text) => moment(text).format('DD MMMM YYYY'),
-
     },
     {
       title: 'Action',
@@ -281,15 +279,13 @@ const CompanyLocation = () => {
 
   useEffect(() => {
     getCompanyList();
-    const storedRecord = localStorage.getItem('CompanyId');
-    if (storedRecord) {
-      getCompanyData(JSON.parse(storedRecord));
-      setCompanyId(JSON.parse(storedRecord));
-      localStorage.removeItem('CompanyId');
+    if (props.companyId) {
+      getCompanyData(props.companyId);
+      setCompanyId(props.companyId);
     } else {
       setCompanyId();
     }
-  }, []);
+  }, [props.tabClicked, props.companyId]);
 
   useEffect(() => {
     if (companyId) {
@@ -302,7 +298,7 @@ const CompanyLocation = () => {
   const { Dragger } = Upload;
   const uploadProps = {
     name: 'file',
-    accept:'csv',
+    accept: 'csv',
     multiple: false,
     beforeUpload: (file) => {
       const reader = new FileReader();
@@ -312,6 +308,7 @@ const CompanyLocation = () => {
           header: true,
           complete: (results) => {
             setCsvColumns(Object.keys(results.data[0]).map((col) => ({ value: col, label: col })));
+            setCsvUploaded(true); // Set CSV upload status to true
           },
         });
       };
@@ -332,9 +329,9 @@ const CompanyLocation = () => {
     onDrop(e) {
       console.log('Dropped files', e.dataTransfer.files);
     },
-    onRemove(e){
+    onRemove(e) {
       handleCancel();
-    }
+    },
   };
 
   const predefinedOptions = [
@@ -392,8 +389,9 @@ const CompanyLocation = () => {
               </Row>
               
 
-              {editStatus ? (<>
-                <Row gutter={20}>
+              {editStatus ? (
+                <>
+                  <Row gutter={20}>
                     <Col lg={12} xs={24}>
                       <Form.Item
                         label="SalCash Field Name"
@@ -419,39 +417,46 @@ const CompanyLocation = () => {
                       <Button type="primary" className='ml-15' htmlType="submit">Save</Button>
                     </Col>
                   </Row>
-              </>) : (<>
-              <Row gutter={20}>
-                <Col lg={12}>
-                  <Dragger {...uploadProps}>
-                    <p className="ant-upload-drag-icon">
-                      <InboxOutlined />
-                    </p>
-                    <p className="ant-upload-text">Click or drag file to this area to upload</p>
-                    <p className="ant-upload-hint">
-                      Support for a single upload. Strictly prohibited from uploading company data or other banned files.
-                    </p>
-                  </Dragger>
-                </Col>
-              </Row>
+                </>
+              ) : (
+                <>
+                  <Row gutter={20}>
+                    <Col lg={12}>
+                      <Dragger {...uploadProps}>
+                        <p className="ant-upload-drag-icon">
+                          <InboxOutlined />
+                        </p>
+                        <p className="ant-upload-text">Click or drag file to this area to upload</p>
+                        <p className="ant-upload-hint">
+                          Support for a single upload. Strictly prohibited from uploading company data or other banned files.
+                        </p>
+                      </Dragger>
+                    </Col>
+                  </Row>
 
-              <Row gutter={20} className="mt-25">
-                <Col lg={6} xs={24}>
-                  <Card title="SalCash Fields">
-                    <MultiSelect disabled={false} options={predefinedOptions}  onSelectionChange={setPreDefinedFileFields}/>
-                  </Card>
-                </Col>
-                <Col lg={6} xs={24}>
-                  <Card title="CSV File Fields">
-                    <MultiSelect disabled={false} options={csvColumns} onSelectionChange={setSelectedFileFields} />
-                  </Card>
-                </Col>
-              </Row>
-              <Row>
-                <Col lg={24} xs={24} className="pull-right">
-                  <Button type="primary" className="ml-15" htmlType="submit">Map Data</Button>
-                </Col>
-              </Row>
-              </>)}
+                  {csvUploaded && ( // Show this block only if a CSV file has been uploaded
+                    <>
+                      <Row gutter={20} className="mt-25">
+                        <Col lg={6} xs={24}>
+                          <Card title="SalCash Fields">
+                            <MultiSelect disabled={false} options={predefinedOptions} onSelectionChange={setPreDefinedFileFields} />
+                          </Card>
+                        </Col>
+                        <Col lg={6} xs={24}>
+                          <Card title="CSV File Fields">
+                            <MultiSelect disabled={false} options={csvColumns} onSelectionChange={setSelectedFileFields} />
+                          </Card>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col lg={24} xs={24} className="pull-right">
+                          <Button type="primary" className="ml-15" htmlType="submit">Map Data</Button>
+                        </Col>
+                      </Row>
+                    </>
+                  )}
+                </>
+              )}
               
             </Form>
             <br />

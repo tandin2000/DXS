@@ -560,6 +560,41 @@ class RestService {
     }
   }
 
+  async GETSalcashFee() {
+    try {
+      const res = await axios.get(
+        process.env.REACT_APP_BACKEND_URL + `/api/salcash_fee/`
+      );
+      return {
+        status: 200,
+        data: res.data,
+      };
+    } catch (error) {
+        return {
+          status: 500,
+          message: error,
+        };
+    }
+  }
+
+  async UPDATESalcashFee(value) {
+    try {
+      const res = await axios.put(
+        process.env.REACT_APP_BACKEND_URL + `/api/salcash_fee/`,
+        value
+      );
+      return {
+        status: 200,
+        data: res.data,
+      };
+    } catch (error) {
+        return {
+          status: 500,
+          message: error,
+        };
+    }
+  }
+
   async POSTAdvanceRequestData(formData) {
     try {
       const res = await axios.post(

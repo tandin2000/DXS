@@ -45,6 +45,7 @@ const CompanyLocation = (props) => {
   };
   const handleCancel = () => {
     form.resetFields();
+    form.setFieldsValue({company_id : companyId});
   };
   const handleSubmit = async(values) => {
     const response = await RestAPI.POSTNewUser(values)
@@ -376,7 +377,14 @@ const CompanyLocation = (props) => {
           <Col lg={12} xs={24}>
           <Form.Item label="Phone"
            name="contact_number"
-           rules={[{ required: true, message: 'Please enter the phone number' }]}>
+           rules={[
+              { required: true, message: 'Please enter the phone number' },
+              {
+                pattern: /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,}$/,
+                message: 'Please enter a valid phone number',
+              },
+            ]}
+            >
           <Input placeholder="Enter the phone number" />
 
       </Form.Item>
@@ -389,7 +397,7 @@ const CompanyLocation = (props) => {
         
           <Row>
             <Col lg={24} className='pull-right'>
-            <Button type='primary' danger htmlType="reset">Cancel</Button>
+            <Button type='primary' danger onClick={handleCancel}>Cancel</Button>
               <Button type="primary" className='ml-15' htmlType="submit">Save</Button>
             </Col>
           </Row>

@@ -12,7 +12,7 @@ import Companyconfiguration from '../companyconfiguration/CompanyConfiguration'
 import Companyusers from '../companyusers/CompanyUsers'
 import Companycontact from '../companycontact/CompanyContact'
 import CompanyCretate from '../companyadministration/CompanyDetails'
-
+import DataMapping from '../../../pages/Salcash/datamapping/DataMapping'
 const CompanyDetails = () => {
  
   const [justifyPillsTab, setjustifyPillsTab] = useState("1");
@@ -83,8 +83,13 @@ const CompanyDetails = () => {
                                             </NavLink>
                                         </NavItem>
                                         <NavItem>
-                                        <NavLink style={{ cursor: "pointer" }} disabled={disabled} className={classnames({ active: justifyPillsTab === "5", })} onClick={() => { justifyPillsToggle("5"); }} >
+                                            <NavLink style={{ cursor: "pointer" }} disabled={disabled} className={classnames({ active: justifyPillsTab === "5", })} onClick={() => { justifyPillsToggle("5"); }} >
                                             Contact
+                                            </NavLink>
+                                        </NavItem>
+                                        <NavItem>
+                                            <NavLink style={{ cursor: "pointer" }} disabled={disabled} className={classnames({ active: justifyPillsTab === "6", })} onClick={() => { justifyPillsToggle("6"); }} >
+                                            Data Mapping
                                             </NavLink>
                                         </NavItem>
                                     </Nav>
@@ -108,6 +113,9 @@ const CompanyDetails = () => {
                                         </TabPane>
                                         <TabPane tabId="5" id="pill-justified-settings-1">
                                         <Companycontact tabClicked={justifyPillsTab === "5"} cameFromCompany={disabled2} companyId={companyId}/>
+                                        </TabPane>
+                                        <TabPane tabId="6" id="pill-justified-settings-1">
+                                          <DataMapping tabClicked={justifyPillsTab === "6"} cameFromCompany={disabled2} companyId={companyId}/>
                                         </TabPane>
                                     </TabContent>
           </div>

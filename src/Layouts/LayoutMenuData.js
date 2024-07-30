@@ -179,16 +179,12 @@ const NavDataMain = () => {
         //   parentId: "company",
         // },
        
-        {
-          id: "DataMapping",
-          label: "Data Mapping",
-          link: "/DataMapping",
-          parentId: "company",
-        },
-       
-       
-       
-       
+        // {
+        //   id: "DataMapping",
+        //   label: "Data Mapping",
+        //   link: "/DataMapping",
+        //   parentId: "company",
+        // },
       ],
     },
 

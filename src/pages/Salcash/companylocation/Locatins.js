@@ -49,7 +49,10 @@ const CompanyLocation = (props) => {
       const response = await RestAPI.PUTLocationById(values, locationId)
       if(response.status === 200){
         notification.success({ message: 'Company Location update successfully!' });
-        getCompanyLocationData(companyId)
+        getCompanyLocationData(companyId);
+        form.resetFields();
+        form.setFieldsValue({company_id : companyId});
+        setEditStatus2(false);
       }else{
         notification.error({ message: 'Company Location update Failed' });
       }
@@ -57,7 +60,10 @@ const CompanyLocation = (props) => {
       const response = await RestAPI.POSTLocation(values)
       if(response.status === 200){
         notification.success({ message: 'Company Location saved successfully!' });
-        getCompanyLocationData(companyId)
+        getCompanyLocationData(companyId);
+        form.resetFields();
+        form.setFieldsValue({company_id : companyId});
+        setEditStatus2(false);
       }else{
         notification.error({ message: 'Company Location creation Failed' });
       }
@@ -354,7 +360,10 @@ const CompanyLocation = (props) => {
             name="contact_number"
             rules={[
               { required: true, message: 'Please enter the contact number!' },
-              { pattern: /^[0-9]+$/, message: 'Please enter a valid phone number!' }
+              {
+                pattern: /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,}$/,
+                message: 'Please enter a valid phone number',
+              },
             ]}
           >
             <Input placeholder="Phone No of Primary Contact of Location" />

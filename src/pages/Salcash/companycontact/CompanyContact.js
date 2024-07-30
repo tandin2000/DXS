@@ -55,7 +55,10 @@ const CompanyLocation = (props) => {
       const response = await RestAPI.PUTCCDById(values, ccdId)
       if(response.status === 200){
         notification.success({ message: 'Company Contact Details Updated successfully!' });
-        getCompanyContactDetailsData(companyId)
+        getCompanyContactDetailsData(companyId);
+        form.resetFields();
+        form.setFieldsValue({company_id : companyId});
+        setEditStatus2(false);
       }else{
         notification.error({ message: 'Company Contact Details update Failed' });
       }
@@ -63,7 +66,10 @@ const CompanyLocation = (props) => {
       const response = await RestAPI.POSTCompanyContactDetails(values)
       if(response.status === 200){
         notification.success({ message: 'Company Contact Details saved successfully!' });
-        getCompanyContactDetailsData(companyId)
+        getCompanyContactDetailsData(companyId);
+        form.resetFields();
+        form.setFieldsValue({company_id : companyId});
+        setEditStatus2(false);
       }else{
         notification.error({ message: 'Company Contact Details creation Failed' });
       }
@@ -246,9 +252,9 @@ const CompanyLocation = (props) => {
     },
     {
       title: 'Phone',
-      dataIndex: 'phone1',
-      key: 'phone1',
-      ...getColumnSearchProps('phone1'),
+      dataIndex: 'phone_1',
+      key: 'phone_1',
+      ...getColumnSearchProps('phone_1'),
       sorter: (a, b) => a.phone - b.phone,
     },
 
@@ -377,7 +383,14 @@ const CompanyLocation = (props) => {
           <Row gutter={20}>
             <Col lg={12} xs={24}>
               <Form.Item label="Email" name="email"
-            rules={[{ required: true, message: 'Please enter the Email!' }]}>
+                rules={[
+                          { required: true, message: 'Please enter the company email address' },
+                          {
+                            type: 'email',
+                            message: 'Please enter a valid email address',
+                          },
+                        ]} 
+              >
                 <Input placeholder="" />
 
               </Form.Item>
@@ -385,7 +398,14 @@ const CompanyLocation = (props) => {
             </Col>
             <Col lg={6} xs={12}>
               <Form.Item label="Phone 1" name="phone_1"
-            rules={[{ required: true, message: 'Please enter the Contact Number!' }]}>
+              rules={[
+              { required: true, message: 'Please enter the contact number!' },
+              {
+                pattern: /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,}$/,
+                message: 'Please enter a valid phone number',
+              },
+            ]}
+            >
                 <Input placeholder="" />
 
               </Form.Item>
